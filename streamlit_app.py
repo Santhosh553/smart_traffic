@@ -10,6 +10,7 @@ import numpy as np
 # Load the YOLO model
 model = YOLO("yolov8l.pt")
 
+# Class names (you can update this list according to your dataset)
 classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
               "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
               "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella",
@@ -19,8 +20,7 @@ classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "trai
               "carrot", "hot dog", "pizza", "donut", "cake", "chair", "sofa", "pottedplant", "bed",
               "diningtable", "toilet", "tvmonitor", "laptop", "mouse", "remote", "keyboard", "cell phone",
               "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
-              "teddy bear", "hair drier", "toothbrush", "auto rickshaw"
-              ]
+              "teddy bear", "hair drier", "toothbrush", "auto rickshaw"]
 
 # Custom CSS for better styling
 st.markdown("""
@@ -57,10 +57,11 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# Title and subtitle
 st.markdown('<h1 class="title">Real-Time Object Detection with YOLOv8</h1>', unsafe_allow_html=True)
 st.markdown('<p class="subtitle">Upload an image or use your webcam for real-time object detection.</p>', unsafe_allow_html=True)
 
-# Function to process image
+# Function to process the image
 def process_image(image):
     img = np.array(image)
     results = model(img, stream=True)
@@ -87,28 +88,29 @@ def process_image(image):
             else:
                 other_objects_count += 1
 
+            # Display label with confidence
             cv2.putText(img, f'{object_name} {conf}', (x1, max(y1 - 10, 25)), cv2.FONT_HERSHEY_SIMPLEX, 1,
                         (255, 255, 255), 2, cv2.LINE_AA)
 
+    # Add overall counts to the image
     cv2.putText(img, f'People: {people_count}', (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (100, 100, 100), 2, cv2.LINE_AA)
     cv2.putText(img, f'Other Objects: {other_objects_count}', (img.shape[1] - 400, 50), cv2.FONT_HERSHEY_SIMPLEX, 1,
                 (100, 100, 100), 2, cv2.LINE_AA)
 
     return img
 
-# Upload Image
+# Image Upload Section
 st.markdown('<div class="upload-section">', unsafe_allow_html=True)
 uploaded_image = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
 if uploaded_image is not None:
     image = Image.open(uploaded_image)
-    st.image(image, caption='Uploaded Image.', use_column_width=True)
-    st.write("")
+    st.image(image, caption='Uploaded Image', use_column_width=True)
     st.write("Processing...")
     processed_image = process_image(image)
-    st.image(processed_image, caption='Processed Image.', use_column_width=True)
+    st.image(processed_image, caption='Processed Image', use_column_width=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Real-Time Webcam Detection
+# Real-Time Webcam Detection Section
 st.markdown('<div class="webcam-section">', unsafe_allow_html=True)
 use_webcam = st.checkbox('Use Webcam')
 if use_webcam:
@@ -121,7 +123,7 @@ if use_webcam:
     while True:
         success, img = cap.read()
         if not success:
-            st.write("Failed to capture image from webcam.")
+            st.write("Failed to capture image.")
             break
 
         processed_image = process_image(img)
@@ -129,13 +131,13 @@ if use_webcam:
         fps = 1 / (new_frame_time - prev_frame_time)
         prev_frame_time = new_frame_time
 
-        # Convert processed image back to RGB for displaying in Streamlit
+        # Convert processed image back to RGB for Streamlit display
         processed_image_rgb = cv2.cvtColor(processed_image, cv2.COLOR_BGR2RGB)
         st.image(processed_image_rgb, caption=f'Webcam (FPS: {fps:.2f})', use_column_width=True)
 
         time.sleep(0.1)
 
-        # This is needed to allow Streamlit to refresh the image display
+        # Allow Streamlit to refresh the display
         st.experimental_rerun()
 else:
     st.write("Enable the webcam to start real-time object detection.")
